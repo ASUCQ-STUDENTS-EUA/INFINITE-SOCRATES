@@ -1,5 +1,5 @@
 #50954152
-#Signing in for Admin
+#Admin setup
 pip install firebase-admin
 
 import firebase_admin
