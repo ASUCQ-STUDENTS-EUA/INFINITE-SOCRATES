@@ -47,33 +47,39 @@ All team members are expected to follow the contribution guidelines below.
 ### Initial Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/ASUCQ-Projects/infinite-socrates.git
    cd infinite-socrates
+   ```
 
-2. Create a virtual environment
+2. **Create a virtual environment**
 
-bash
-python -m venv venv
-source venv/bin/activate   # On Windows: venv\Scripts\activate
+   ```bash
+   python -m venv venv
+   source venv/bin/activate   # On Windows: venv\Scripts\activate
+   ```
 
-3. Install dependencies
+3. **Install dependencies**
 
-bash
-pip install -r requirements.txt
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-4. Set up environment variables
+4. **Set up environment variables**
 
-Copy .env.example to .env and fill in your API keys and Firebase configuration.
-Never commit .env to the repository.
+   Copy `.env.example` to `.env` and fill in your API keys and Firebase configuration.
+   Never commit `.env` to the repository.
 
-5. Run the application
+5. **Run the application**
 
-bash
-python src/main.py
+   ```bash
+   python src/main.py
+   ```
 
-📁 Repository Structure
-text
+## 📁 Repository Structure
+
+```text
 infinite-socrates/
 ├── .github/                # GitHub templates (issue, PR)
 ├── docs/                    # Documentation, meeting notes, design docs
@@ -92,6 +98,7 @@ infinite-socrates/
 ├── .gitignore               # Files/folders to ignore in git
 ├── LICENSE                  # MIT License
 └── README.md                # This file
+```
 
 🔄 Development Workflow
 We follow a feature-branch workflow with pull requests and code reviews.

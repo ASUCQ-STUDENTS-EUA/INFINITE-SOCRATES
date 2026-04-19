@@ -1,0 +1,2 @@
+"""Infinite Socrates application package."""
+
