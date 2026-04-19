@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import tkinter as tk
-from tkinter import ttk
-
-
 def run_app() -> None:
+    import tkinter as tk
+    from tkinter import ttk
+
     root = tk.Tk()
     root.title("Infinite Socrates")
     root.geometry("900x600")
