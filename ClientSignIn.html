@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Authentication for Infinite Socrates</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input[type="email"], input[type="password"], button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #45a049; }
+        .google-btn {
+            background-color: #db4437; /* Google red */
+        }
+        .google-btn:hover {
+            background-color: #c33d2f;
+        }
+        .message { margin-top: 15px; padding: 10px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .section:last-child { border-bottom: none; padding-bottom: 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Infinite Socrates Authentication</h1>
+
+        <!-- User Status Display -->
+        <div class="section">
+            <h2>Current User</h2>
+            <p>User Email: <span id="userEmail">Not signed in</span></p>
+            <p>User UID: <span id="userUid">N/A</span></p>
+            <button id="signOutButton">Sign Out</button>
+            <div id="statusMessage" class="message"></div>
+        </div>
+
+        <!-- Email/Password Sign Up -->
+        <div class="section">
+            <h2>Sign Up with Email</h2>
+            <input type="email" id="emailSignUp" placeholder="Email">
+            <input type="password" id="passwordSignUp" placeholder="Password (min 6 characters)">
+            <button id="signUpButton">Sign Up</button>
+        </div>
+
+        <!-- Email/Password Sign In -->
+        <div class="section">
+            <h2>Sign In with Email</h2>
+            <input type="email" id="emailSignIn" placeholder="Email">
+            <input type="password" id="passwordSignIn" placeholder="Password">
+            <button id="signInButton">Sign In</button>
+        </div>
+
+        <!-- Google Sign In -->
+        <div class="section">
+            <h2>Sign In with Google</h2>
+            <button id="googleSignInButton" class="google-btn">Sign In with Google</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        // Replace these with your actual project config from the Firebase console
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "infinite-socrates", // Your Project ID
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // UI Elements
+        const userEmailSpan = document.getElementById('userEmail');
+        const userUidSpan = document.getElementById('userUid');
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const signOutButton = document.getElementById('signOutButton');
+
+        const emailSignUpInput = document.getElementById('emailSignUp');
+        const passwordSignUpInput = document.getElementById('passwordSignUp');
+        const signUpButton = document.getElementById('signUpButton');
+
+        const emailSignInInput = document.getElementById('emailSignIn');
+        const passwordSignInInput = document.getElementById('passwordSignIn');
+        const signInButton = document.getElementById('signInButton');
+
+        const googleSignInButton = document.getElementById('googleSignInButton');
+
+        // --- Functions to update UI messages ---
+        function showMessage(element, message, type = 'success') {
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000); // Hide after 5 seconds
+        }
+
+        // --- Authentication Event Listeners ---
+
+        // Listen for authentication state changes (when user signs in/out)
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in
+                userEmailSpan.textContent = user.email;
+                userUidSpan.textContent = user.uid;
+                showMessage(statusMessageDiv, `Welcome, ${user.email}!`, 'success');
+                // You can get the ID token here if you need to send it to your Python backend
+                // user.getIdToken().then(idToken => console.log("ID Token:", idToken));
+            } else {
+                // User is signed out
+                userEmailSpan.textContent = 'Not signed in';
+                userUidSpan.textContent = 'N/A';
+                showMessage(statusMessageDiv, 'User signed out.', 'success');
+            }
+        });
+
+        // Email/Password Sign Up
+        signUpButton.addEventListener('click', async () => {
+            const email = emailSignUpInput.value;
+            const password = passwordSignUpInput.value;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                showMessage(statusMessageDiv, `Successfully signed up: ${userCredential.user.email}`, 'success');
+                emailSignUpInput.value = '';
+                passwordSignUpInput.value = '';
+            } catch (error) {
+                showMessage(statusMessageDiv, `Sign up failed: ${error.message}`, 'error');
+                console.error("Sign up error:", error.code, error.message);
+            }
+        });
+
+        // Email/Password Sign In
+        signInButton.addEventListener('click', async () => {
+            const email = emailSignInInput.value;
+            const password = passwordSignInInput.value;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                showMessage(statusMessageDiv, `Successfully signed in: ${userCredential.user.email}`, 'success');
+                emailSignInInput.value = '';
+                passwordSignInInput.value = '';
+            } catch (error) {
+                showMessage(statusMessageDiv, `Sign in failed: ${error.message}`, 'error');
+                console.error("Sign in error:", error.code, error.message);
+            }
+        });
+
+        // Google Sign In
+        googleSignInButton.addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                // The signed-in user info.
+                const user = result.user;
+                showMessage(statusMessageDiv, `Successfully signed in with Google: ${user.email}`, 'success');
+            } catch (error) {
+                // Handle Errors here.
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                // The email of the user's account used.
+                const email = error.customData?.email;
+                // The AuthCredential type that was used.
+                const credential = GoogleAuthProvider.credentialFromError(error);
+                showMessage(statusMessageDiv, `Google sign in failed: ${errorMessage}`, 'error');
+                console.error("Google sign in error:", errorCode, errorMessage, email, credential);
+            }
+        });
+
+        // Sign Out
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage(statusMessageDiv, 'Successfully signed out.', 'success');
+            } catch (error) {
+                showMessage(statusMessageDiv, `Sign out failed: ${error.message}`, 'error');
+                console.error("Sign out error:", error.code, error.message);
+            }
+        });
+    </script>
+</body>
+</html>
+
